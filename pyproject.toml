@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "fastbootpy"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pyusb = "^1.2.1"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.961"
+bandit = "^1.7.4"
+black = {version = "^22.3.0", allow-prereleases = true}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
