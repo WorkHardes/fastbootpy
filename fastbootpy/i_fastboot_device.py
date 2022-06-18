@@ -12,12 +12,6 @@ class IFastbootDevice(abc.ABC):
     def usb_handle(self) -> usb.core.Device:
         raise NotImplementedError
 
-    def open(self) -> None:
-        raise NotImplementedError
-
-    def close(self) -> None:
-        raise NotImplementedError
-
     def connect(self, serial: str, timeout: int = DEFAULT_TIMEOUT) -> IFastbootDevice:
         raise NotImplementedError
 
@@ -42,7 +36,7 @@ class IFastbootDevice(abc.ABC):
     def boot(self) -> None:
         raise NotImplementedError
 
-    def continue_fastboot(self) -> None:
+    def continue_(self) -> None:
         raise NotImplementedError
 
     def reboot(self, mode: str | None = None) -> None:

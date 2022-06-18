@@ -2,19 +2,22 @@ from __future__ import annotations
 
 import usb
 
-import exceptions
-import i_usb_device
+from fastbootpy import exceptions
+from fastbootpy import fastboot_manager
+from fastbootpy import i_usb_device
 
 
 class USBDevice(i_usb_device.IUSBDevice):
     def __init__(
         self,
+        serial: str,
         usb_device: usb.core.Device,
         read_endpoint: usb.core.Endpoint,
         write_endpoint: usb.core.Endpoint,
         read_timeout: int,
         write_timeout: int,
     ) -> None:
+        self.serial = serial
         self.usb_device = usb_device
         self.read_endpoint = read_endpoint
         self.write_endpoint = write_endpoint
@@ -24,8 +27,8 @@ class USBDevice(i_usb_device.IUSBDevice):
     def send(self, data: bytes) -> None:
         try:
             self.write_endpoint.write(data, self.write_timeout)
-        except usb.USBError:
-            raise exceptions.USBError()
+        except usb.USBError as e:
+            raise exceptions.USBError(serial=self.serial, exception=e)
 
     def recv(self) -> bytes:
         device_response = b""
@@ -79,11 +82,21 @@ class USBDevice(i_usb_device.IUSBDevice):
     @staticmethod
     def _get_usb_device(serial: str) -> usb.core.Device | None:
         for device in usb.core.find(find_all=True):
-            try:
-                if device.serial_number == serial:
-                    return device
-            except ValueError:
-                pass
+            for cfg in device:
+                dev = usb.util.find_descriptor(
+                    cfg,
+                    bInterfaceClass=fastboot_manager.FASTBOOT_CLASS,
+                    bInterfaceSubClass=fastboot_manager.FASTBOOT_SUBCLASS,
+                    bInterfaceProtocol=fastboot_manager.FASTBOOT_PROTOCOL,
+                )
+                if dev is None:
+                    continue
+                else:
+                    try:
+                        if device.serial_number == serial:
+                            return device
+                    except ValueError:
+                        pass
         return None
 
     @classmethod
@@ -95,20 +108,25 @@ class USBDevice(i_usb_device.IUSBDevice):
     ) -> USBDevice:
         usb_device = cls._get_usb_device(serial)
         if usb_device is None:
-            raise exceptions.USBError()
+            raise exceptions.DeviceNotFoundError(serial=serial)
 
         try:
             usb_device.reset()
-        except Exception:
-            raise exceptions.USBError()
+        except Exception as e:
+            raise exceptions.USBError(serial=serial, exception=e)
 
         if usb_device.is_kernel_driver_active(0):
             usb_device.detach_kernel_driver(0)
 
         read_endpoint, write_endpoint = cls._get_r_w_endpoints(usb_device)
         if write_endpoint is None or read_endpoint is None:
-            raise exceptions.USBError()
+            raise exceptions.USBError(serial=serial)
 
         return cls(
-            usb_device, read_endpoint, write_endpoint, read_timeout, write_timeout
+            serial,
+            usb_device,
+            read_endpoint,
+            write_endpoint,
+            read_timeout,
+            write_timeout,
         )
