@@ -1,4 +1,4 @@
-import i_fastboot_protocol
+from fastbootpy import i_fastboot_protocol
 
 
 ENCODING = "utf-8"

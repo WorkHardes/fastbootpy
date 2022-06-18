@@ -1,6 +1,6 @@
 import usb
 
-import i_fastboot_manager as i_fastboot_manager
+from fastbootpy import i_fastboot_manager
 
 
 FASTBOOT_CLASS = 0xFF
