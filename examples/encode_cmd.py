@@ -1,4 +1,4 @@
-from fastbootpy.fastboot_protocol import FastbootProtocol
+from fastbootpy import FastbootProtocol
 
 
 def main() -> None:

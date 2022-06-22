@@ -2,7 +2,7 @@ import os
 
 import unittest
 
-from fastbootpy.fastboot_manager import FastbootManager
+from fastbootpy import FastbootManager
 
 
 FASTBOOT_DEVICE_SERIAL = os.getenv("FASTBOOT_DEVICE_SERIAL")

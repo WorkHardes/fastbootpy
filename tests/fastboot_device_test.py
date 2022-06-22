@@ -1,13 +1,14 @@
 import os
 import unittest
 
-from fastbootpy.exceptions import USBError
-from fastbootpy.fastboot_device import FastbootDevice
+from fastbootpy import FastbootDevice
 
 
 FASTBOOT_DEVICE_SERIAL = os.getenv("FASTBOOT_DEVICE_SERIAL")
+if FASTBOOT_DEVICE_SERIAL is None:
+    FASTBOOT_DEVICE_SERIAL = "emulator-5554"
 
-device = FastbootDevice().connect(FASTBOOT_DEVICE_SERIAL)
+device = FastbootDevice.connect(FASTBOOT_DEVICE_SERIAL)
 
 
 class FastbootDeviceTest(unittest.TestCase):
@@ -19,13 +20,6 @@ class FastbootDeviceTest(unittest.TestCase):
             device.getvar("serialno"),
             f"OKAY{FASTBOOT_DEVICE_SERIAL}",
         )
-
-    def test_reboot_bootloader(self):
-        try:
-            device.reboot_bootloader()
-            return False
-        except USBError:
-            return True
 
 
 if __name__ == "__main__":
