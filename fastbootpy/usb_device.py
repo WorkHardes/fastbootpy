@@ -10,14 +10,12 @@ from fastbootpy import i_usb_device
 class USBDevice(i_usb_device.IUSBDevice):
     def __init__(
         self,
-        serial: str,
         usb_device: usb.core.Device,
         read_endpoint: usb.core.Endpoint,
         write_endpoint: usb.core.Endpoint,
         read_timeout: int,
         write_timeout: int,
     ) -> None:
-        self.serial = serial
         self.usb_device = usb_device
         self.read_endpoint = read_endpoint
         self.write_endpoint = write_endpoint
@@ -28,7 +26,7 @@ class USBDevice(i_usb_device.IUSBDevice):
         try:
             self.write_endpoint.write(data, self.write_timeout)
         except usb.USBError as e:
-            raise exceptions.USBError(serial=self.serial, exception=e)
+            raise exceptions.USBError(serial=self.usb_device.serial_number, exception=e)
 
     def recv(self) -> bytes:
         device_response = b""
@@ -49,19 +47,6 @@ class USBDevice(i_usb_device.IUSBDevice):
 
         return device_response
 
-    def flush_buffer(self) -> None:
-        while True:
-            try:
-                buffer = self.read_endpoint.read(
-                    4096,
-                    self.read_timeout,
-                )
-            except usb.USBError:
-                break
-
-            if buffer == None or buffer == b"":
-                break
-
     @staticmethod
     def _get_r_w_endpoints(
         usb_device: usb.core.Device,
@@ -80,7 +65,7 @@ class USBDevice(i_usb_device.IUSBDevice):
         return read_endpoint, write_endpoint
 
     @staticmethod
-    def _get_usb_device(serial: str) -> usb.core.Device | None:
+    def _get_pyusb_device(serial: str) -> usb.core.Device | None:
         for device in usb.core.find(find_all=True):
             for cfg in device:
                 dev = usb.util.find_descriptor(
@@ -99,34 +84,47 @@ class USBDevice(i_usb_device.IUSBDevice):
                         pass
         return None
 
+    def _flush_buffer(self) -> None:
+        while True:
+            try:
+                buffer = self.read_endpoint.read(
+                    4096,
+                    self.read_timeout,
+                )
+            except usb.USBError:
+                break
+
+            if buffer == None or buffer == b"":
+                break
+
     @classmethod
-    def get_fastboot_device(
+    def get_usb_device(
         cls,
         serial: str,
         read_timeout: int,
         write_timeout: int,
     ) -> USBDevice:
-        usb_device = cls._get_usb_device(serial)
-        if usb_device is None:
+        pyusb_device = cls._get_pyusb_device(serial)
+        if pyusb_device is None:
             raise exceptions.DeviceNotFoundError(serial=serial)
 
         try:
-            usb_device.reset()
-        except Exception as e:
+            pyusb_device.reset()
+            if pyusb_device.is_kernel_driver_active(0):
+                pyusb_device.detach_kernel_driver(0)
+        except usb.USBError as e:
             raise exceptions.USBError(serial=serial, exception=e)
 
-        if usb_device.is_kernel_driver_active(0):
-            usb_device.detach_kernel_driver(0)
-
-        read_endpoint, write_endpoint = cls._get_r_w_endpoints(usb_device)
+        read_endpoint, write_endpoint = cls._get_r_w_endpoints(pyusb_device)
         if write_endpoint is None or read_endpoint is None:
             raise exceptions.USBError(serial=serial)
 
-        return cls(
-            serial,
-            usb_device,
+        usb_device = cls(
+            pyusb_device,
             read_endpoint,
             write_endpoint,
             read_timeout,
             write_timeout,
         )
+        usb_device._flush_buffer()
+        return usb_device

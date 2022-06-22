@@ -1,8 +1,7 @@
 import os
 import unittest
 
-from fastbootpy.exceptions import USBError
-from fastbootpy.fastboot_device import FastbootDevice
+from fastbootpy import FastbootDevice, USBError
 
 
 FASTBOOT_DEVICE_SERIAL = os.getenv("FASTBOOT_DEVICE_SERIAL")
@@ -11,7 +10,7 @@ FASTBOOT_DEVICE_SERIAL = os.getenv("FASTBOOT_DEVICE_SERIAL")
 class TestFastbootDevice(unittest.TestCase):
     def test_connect(self):
         try:
-            FastbootDevice().connect(FASTBOOT_DEVICE_SERIAL)
+            FastbootDevice.connect(FASTBOOT_DEVICE_SERIAL)
             return False
         except USBError:
             return True

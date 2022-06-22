@@ -1,9 +1,9 @@
-from fastbootpy.fastboot_device import FastbootDevice
+from fastbootpy import FastbootDevice
 
 
 def main() -> None:
     serial = "emulator-5554"
-    device = FastbootDevice().connect(serial)
+    device = FastbootDevice.connect(serial)
     result = device.getvar("all")
     print("result:", result)
 

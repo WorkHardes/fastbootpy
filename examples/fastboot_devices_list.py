@@ -1,4 +1,4 @@
-from fastbootpy.fastboot_manager import FastbootManager
+from fastbootpy import FastbootManager
 
 
 def main() -> None:

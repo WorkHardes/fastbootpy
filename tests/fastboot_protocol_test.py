@@ -1,6 +1,6 @@
 import unittest
 
-from fastbootpy.fastboot_protocol import FastbootProtocol
+from fastbootpy import FastbootProtocol
 
 
 class TestFastbootProtocol(unittest.TestCase):

@@ -7,11 +7,11 @@ FASTBOOT_CLASS = 0xFF
 FASTBOOT_SUBCLASS = 0x42
 FASTBOOT_PROTOCOL = 0x03
 
+DERAULT_USB_READ_TIMEOUT = 500
+DERAULT_USB_WRITE_TIMEOUT = 500
+
 
 class FastbootManager(i_fastboot_manager.IFastbootManager):
-    def __init__(self) -> None:
-        pass
-
     @staticmethod
     def devices() -> list[str]:
         fastboot_devices: list[str] = []
@@ -29,6 +29,5 @@ class FastbootManager(i_fastboot_manager.IFastbootManager):
                     try:
                         fastboot_devices.append(device.serial_number)
                     except (usb.USBError, ValueError):
-                        # Start server from sudo for full usb access
                         pass
         return fastboot_devices

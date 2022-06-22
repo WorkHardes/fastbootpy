@@ -1,30 +1,26 @@
 from __future__ import annotations
 
+from fastbootpy import fastboot_manager
 from fastbootpy import fastboot_protocol
 from fastbootpy import usb_device
 from fastbootpy import i_fastboot_device
 
 
-DERAULT_WRITE_TIMEOUT = 100
-DERAULT_READ_TIMEOUT = 100
-
-
 class FastbootDevice(i_fastboot_device.IFastbootDevice):
-    def __init__(self):
-        self._usb_handle = None
-        self.serial = None
-
-    def connect(
-        self,
-        serial: str,
-        read_timeout: int = DERAULT_READ_TIMEOUT,
-        write_timeout: int = DERAULT_WRITE_TIMEOUT,
-    ) -> FastbootDevice:
+    def __init__(self, serial: str, usb_handle: usb_device.USBDevice):
         self.serial = serial
-        self._usb_handle = usb_device.USBDevice.get_fastboot_device(
+        self._usb_handle = usb_handle
+
+    @staticmethod
+    def connect(
+        serial: str,
+        read_timeout: int = fastboot_manager.DERAULT_USB_READ_TIMEOUT,
+        write_timeout: int = fastboot_manager.DERAULT_USB_WRITE_TIMEOUT,
+    ) -> FastbootDevice:
+        usb_handle = usb_device.USBDevice.get_usb_device(
             serial, read_timeout, write_timeout
         )
-        return self
+        return FastbootDevice(serial, usb_handle)
 
     def send(self, cmd: str | bytes) -> str:
         if isinstance(cmd, str):
@@ -42,8 +38,8 @@ class FastbootDevice(i_fastboot_device.IFastbootDevice):
         return self.send(cmd)
 
     def download(self, data: bytes) -> None:
-        prefix = "download"
-        cmd = fastboot_protocol.FastbootProtocol.encode_cmd(prefix, data)
+        prefix = b"download"
+        cmd = prefix + data
         self.send(cmd)
 
     def upload(self) -> None:
