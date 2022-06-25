@@ -20,6 +20,19 @@ poetry add fastbootpy
 
 ---
 
+## Supported fastboot commands
+
+- getvar
+- download
+- upload
+- flash
+- erase
+- boot
+- continue
+- reboot
+
+---
+
 ## Examples
 
 All examples of using library you can find in folder examples.
