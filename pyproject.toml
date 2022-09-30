@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastbootpy"
-version = "0.4.0"
+version = "0.1.0"
 description = ""
 authors = ["Orekhov Arkady <arckadyor34@google.com>"]
 readme = "README.md"
@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 pyusb = "^1.2.1"
 
 [tool.poetry.dev-dependencies]
